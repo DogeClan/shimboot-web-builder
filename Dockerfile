@@ -1,5 +1,5 @@
 # Use a Debian base image
-FROM debian:latest
+FROM --platform=linux/arm64 debian:latest
 
 # Install necessary packages for building, emulating, and serving files
 RUN apt-get update && \
@@ -14,7 +14,8 @@ RUN apt-get update && \
     libwebsockets-dev \
     libssl-dev \
     nginx \
-    && apt-get clean
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Clone the shimboot repository
 RUN git clone https://github.com/ading2210/shimboot.git /opt/shimboot
@@ -38,5 +39,5 @@ WORKDIR /opt/shimboot
 # Expose the ports for ttyd and nginx
 EXPOSE 10000 80
 
-# Start Nginx and ttyd, then execute the shimboot build command
-CMD ["bash", "-c", "nginx && ttyd -p 10000 bash -c './build_complete.sh vorticon desktop=lxde && cp /opt/shimboot/data/shimboot_vorticon.bin /opt/shimboot/images/ && tar -cvzf /opt/shimboot/images/vorticon_image.tar.gz -C /opt/shimboot/images vorticon_image.img'"]
+# Start Nginx in the background, and then execute the shimboot build command
+CMD service nginx start && ttyd -p 10000 bash -c './build_complete.sh octopus desktop=xfce && cp /tmp/shimboot/data/shimboot_octopus.bin /tmp/shimboot/images/ && tar -cvzf /tmp/shimboot/images/octopus_image.tar.gz -C /tmp/shimboot/images shimboot_octopus.bin'
